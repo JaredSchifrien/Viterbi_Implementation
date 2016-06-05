@@ -129,40 +129,45 @@ class HMM:
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
 
-        probabilities= {}
+        probability_of_states= {}
         labels=[]
 
         for i in range(len(data)):
 
+            element = data[i]
+
             if i==0:
                 for state in self.states:
                     probability = 1.0 
-                    for feature_name in self.featureNames
-                        feature = dic[feature_name]
-                        prob *= elf.emissions[state][feature_name][feature]
-                    prob *= self.priors[state]
-                    entry = {state:prob}
-                    probabilities.update(entry) 
+                    for feature_name in self.featureNames:
+                        feature = element[feature_name]
+                        probability *= self.emissions[state][feature_name][feature]
+                    probability *= self.priors[state]
+                    probability_of_states.update({state:probability}) 
 
             else: 
-                probability = {}
+                possible_probability = {}
                 for state in self.states:
                     possible_nextStates = {}
                     for state2 in self.states:
-                        prob = 1.0  
-                        prob_prior = probabilities[state2] 
+                        probability = 1.0  
+                        prob_prior = probability_of_states[state2] 
                         prob_transition = self.transitions[state2][state] 
                         for feature_name in self.featureNames:
-                            feature = dic[feature_name]
-                            prob *= elf.emissions[state][feature_name][feature]
-                        prob *= prob_prior * prob_transition 
-                        possible_nextStates.update({state2:prob})
+                            feature = element[feature_name]
+                            probability *= self.emissions[state][feature_name][feature]
+                        probability *= prob_prior * prob_transition 
+                        possible_nextStates.update({state2:probability})
 
-                maximum_prob = possible_nextStates[max(possible_nextStates, key=mapping.get)]
-                probability.update({state:maximum_prob})
-                labels.append(max(probabilities, key=probabilities.get)) 
-
-        return label
+                    maximum_state = max(possible_nextStates, key=possible_nextStates.get)
+                    maximum_prob = possible_nextStates[maximum_state]
+                    possible_probability.update({state:maximum_prob})
+                probability_of_states = copy.deepcopy(possible_probability)
+            
+            label = max(probability_of_states, key=probability_of_states.get)
+            labels.append(label)
+            print probability_of_states
+        return labels
 
     def getEmissionProb( self, state, features ):
         ''' Get P(features|state).
@@ -582,4 +587,25 @@ class Stroke:
 
     # You can (and should) define more features here
 
+def ViterbiTestingExample():
 
+    states = ['sunny','cloudy','rainy']
+    featureNames = ['groundState']
+    numVals = { 'groundState': 3 }
+
+    x = HMM(states, featureNames, 0, numVals)
+
+    x.priors = {'sunny': 0.63, 'cloudy': 0.17, 'rainy': 0.2}
+    x.emissions = {'sunny':{'groundState': [0.6,0.15,0.05]}, 'cloudy':{'groundState': [0.25,0.25,0.25]}, 'rainy':{'groundState': [0.05,0.35,0.5]}}
+    x.transitions = {'sunny':{'sunny':0.5 ,'cloudy':0.375 ,'rainy':0.125 },'cloudy':{'sunny':0.25 ,'cloudy':0.125 ,'rainy':0.625 }, 'rainy':{'sunny':0.25 ,'cloudy':0.375 ,'rainy':0.375 }}
+
+    observed = [ {'groundState':0}, {'groundState':1}, {'groundState':2}, {'groundState':1} ]
+
+    print x.label(observed)
+
+    # Runing ViterbiTestingExample() and printing probabilities in label(self, data), we get the following probabilities:
+    # -------------------------------------------------------------------------------------------------------------------
+    # {'rainy': 0.010000000000000002, 'sunny': 0.378, 'cloudy': 0.0425}
+    # {'rainy': 0.0165375, 'sunny': 0.02835, 'cloudy': 0.0354375}
+    # {'rainy': 0.01107421875, 'sunny': 0.0007087500000000001, 'cloudy': 0.0026578125}
+    # {'rainy': 0.0014534912109374998, 'sunny': 0.00041528320312499996, 'cloudy': 0.0010382080078124999}
