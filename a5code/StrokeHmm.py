@@ -216,10 +216,9 @@ class StrokeLabeler:
         #    name to whether it is continuous or discrete
         # numFVals is a dictionary specifying the number of legal values for
         #    each discrete feature
-        self.featureNames = ['length']
-        self.contOrDisc = {'length': DISCRETE}
-        self.numFVals = { 'length': 2}
-
+        self.featureNames = ['length', 'boxArea']
+        self.contOrDisc = {'length': DISCRETE, 'boxArea': DISCRETE}
+        self.numFVals = { 'length': 2, 'boxArea': 2}
     def featurefy( self, strokes ):
         ''' Converts the list of strokes into a list of feature dictionaries
             suitable for the HMM
@@ -250,7 +249,12 @@ class StrokeLabeler:
                 d['length'] = 0
             else:
                 d['length'] = 1
-
+            #this sees whether or not the area is under 10000 or not.
+            area = s.boxArea()
+            if area<12500:
+                d['boxArea']=0
+            else:
+                d['boxArea'] = 1
             # We can add more features here just by adding them to the dictionary
             # d as we did with length.  Remember that when you add features,
             # you also need to add them to the three member data structures
@@ -609,7 +613,20 @@ class Stroke:
         return ret / len(self.points)
 
     # You can (and should) define more features here
-
+    def boxArea(self):
+        x_set = []
+        y_set = []
+        #seperate the x and y coordinates
+        for point in self.points:
+            x_set.append(point[0])
+            y_set.append(point[1])
+        #get the respective min and maxes
+        min_x = min(x_set)
+        max_x = max(x_set)
+        min_y = min(y_set)
+        max_y = max(y_set)
+        #calculate and return the area
+        return (max_x - min_x)*(max_y - min_y)
 def WeatherTestExample():
 
     states = ['sunny','cloudy','rainy']
