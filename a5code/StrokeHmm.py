@@ -128,10 +128,42 @@ class HMM:
     def label( self, data ):
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
-        # You will implement this function
-        print "label function not yet implemented"
-        return None
-    
+
+        probabilities= {}
+        labels=[]
+
+        for i in range(len(data)):
+
+            if i==0:
+                for state in self.states:
+                    probability = 1.0 
+                    for feature_name in self.featureNames
+                        feature = dic[feature_name]
+                        prob *= elf.emissions[state][feature_name][feature]
+                    prob *= self.priors[state]
+                    entry = {state:prob}
+                    probabilities.update(entry) 
+
+            else: 
+                probability = {}
+                for state in self.states:
+                    possible_nextStates = {}
+                    for state2 in self.states:
+                        prob = 1.0  
+                        prob_prior = probabilities[state2] 
+                        prob_transition = self.transitions[state2][state] 
+                        for feature_name in self.featureNames:
+                            feature = dic[feature_name]
+                            prob *= elf.emissions[state][feature_name][feature]
+                        prob *= prob_prior * prob_transition 
+                        possible_nextStates.update({state2:prob})
+
+                maximum_prob = possible_nextStates[max(possible_nextStates, key=mapping.get)]
+                probability.update({state:maximum_prob})
+                labels.append(max(probabilities, key=probabilities.get)) 
+
+        return label
+
     def getEmissionProb( self, state, features ):
         ''' Get P(features|state).
             Consider each feature independent so
