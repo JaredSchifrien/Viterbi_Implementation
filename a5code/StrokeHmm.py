@@ -156,17 +156,19 @@ class HMM:
                         for feature_name in self.featureNames:
                             feature = element[feature_name]
                             probability *= self.emissions[state][feature_name][feature]
+
                         probability *= prob_prior * prob_transition 
                         possible_nextStates.update({state2:probability})
 
                     maximum_state = max(possible_nextStates, key=possible_nextStates.get)
                     maximum_prob = possible_nextStates[maximum_state]
                     possible_probability.update({state:maximum_prob})
+
                 probability_of_states = copy.deepcopy(possible_probability)
             
             label = max(probability_of_states, key=probability_of_states.get)
             labels.append(label)
-            print probability_of_states
+
         return labels
 
     def getEmissionProb( self, state, features ):
@@ -502,6 +504,27 @@ class StrokeLabeler:
             print "numStrokes is", len(strokes), "numLabels is", len(labels)
         return strokes, labels
 
+        def confustion(self, trueLabels, classifications):
+            '''Creates Confusion matrix based on the actual labels and the HMM's classification'''
+
+            actualDrawing_classDrawing = 0
+            actualDrawing_classText = 0
+            actualText_classText = 0
+            actualText_classDrawing = 0
+
+            for i in range(len(trueLabels)):
+                if trueLabels[i] == "drawing" and classifications[i] == "drawing":
+                    actualDrawing_classDrawing += 1
+                elif trueLabels[i] == "drawing" and classifications[i] == "text":
+                    actualDrawing_classText += 1
+                elif trueLabels[i] == "text" and classifications[i] == "text":
+                    actualText_classText += 1
+                elif trueLabels[i] == "text" and classifications[i] == "drawing":
+                    actualText_classDrawing += 1
+
+            return  {'drawing': {'drawing': actualDrawing_classDrawing, 'text': actualDrawing_classText}, 'text': {'drawing': actualText_classText, 'text': actualText_classDrawing}}
+
+
 class Stroke:
     ''' A class to represent a stroke (series of xyt points).
         This class also has various functions for computing stroke features. '''
@@ -587,13 +610,13 @@ class Stroke:
 
     # You can (and should) define more features here
 
-def ViterbiTestingExample():
+def WeatherTestExample():
 
     states = ['sunny','cloudy','rainy']
-    featureNames = ['groundState']
-    numVals = { 'groundState': 3 }
+    fNames = ['groundState']
+    num = { 'groundState': 3 }
 
-    x = HMM(states, featureNames, 0, numVals)
+    x = HMM(states, fNames, 0, num)
 
     x.priors = {'sunny': 0.63, 'cloudy': 0.17, 'rainy': 0.2}
     x.emissions = {'sunny':{'groundState': [0.6,0.15,0.05]}, 'cloudy':{'groundState': [0.25,0.25,0.25]}, 'rainy':{'groundState': [0.05,0.35,0.5]}}
@@ -603,8 +626,7 @@ def ViterbiTestingExample():
 
     print x.label(observed)
 
-    # Runing ViterbiTestingExample() and printing probabilities in label(self, data), we get the following probabilities:
-    # -------------------------------------------------------------------------------------------------------------------
+    # Runing WeatherTestExample() we get the following probabilities of each state
     # {'rainy': 0.010000000000000002, 'sunny': 0.378, 'cloudy': 0.0425}
     # {'rainy': 0.0165375, 'sunny': 0.02835, 'cloudy': 0.0354375}
     # {'rainy': 0.01107421875, 'sunny': 0.0007087500000000001, 'cloudy': 0.0026578125}
