@@ -1,3 +1,10 @@
+# File: StrokeHmmbasic.py
+# Author(s) names AND netid's:
+# Wyatt Cook: wsc147
+# Jared Schifrien: Jss134
+# Date: June 5, 2016
+# Group work statement: All group members were present and contributing during all work on this project.
+
 import xml.dom.minidom
 import copy
 import guid
@@ -132,41 +139,46 @@ class HMM:
         probability_of_states= {}
         labels=[]
 
+        #labels each element in data
         for i in range(len(data)):
 
             element = data[i]
 
+            #If first state, calculates initial probability of each state
             if i==0:
                 for state in self.states:
                     probability = 1.0 
-                    for feature_name in self.featureNames:
+                    for feature_name in self.featureNames: #Obtains probability of state from each feature
                         feature = element[feature_name]
                         probability *= self.emissions[state][feature_name][feature]
-                    probability *= self.priors[state]
-                    probability_of_states.update({state:probability}) 
+                    probability *= self.priors[state]   
+                    probability_of_states.update({state:probability}) #Updates the probability of this next state
 
+            #If not first state
             else: 
                 possible_probability = {}
+                #For each last state
                 for state in self.states:
                     possible_nextStates = {}
+                    #For each next state, calculates the probability
                     for state2 in self.states:
                         probability = 1.0  
-                        prob_prior = probability_of_states[state2] 
-                        prob_transition = self.transitions[state2][state] 
-                        for feature_name in self.featureNames:
+                        prob_prior = probability_of_states[state2] #probability of initial state
+                        prob_transition = self.transitions[state2][state]  #probability of next state based on first state
+                        for feature_name in self.featureNames:  #Obtains probability of state change from each feature
                             feature = element[feature_name]
                             probability *= self.emissions[state][feature_name][feature]
 
-                        probability *= prob_prior * prob_transition 
+                        probability *= prob_prior * prob_transition #Probabiliy of transition probability * observaton probability
                         possible_nextStates.update({state2:probability})
 
-                    maximum_state = max(possible_nextStates, key=possible_nextStates.get)
+                    maximum_state = max(possible_nextStates, key=possible_nextStates.get) #chooses next state based on highest probability of the given first state
                     maximum_prob = possible_nextStates[maximum_state]
-                    possible_probability.update({state:maximum_prob})
+                    possible_probability.update({state:maximum_prob}) #adds probability of state1 to most likely next state
 
-                probability_of_states = copy.deepcopy(possible_probability)
+                probability_of_states = copy.deepcopy(possible_probability) #prob of states is the set of max probabilities of the next state based on each possible first state
             
-            label = max(probability_of_states, key=probability_of_states.get)
+            label = max(probability_of_states, key=probability_of_states.get) #Label is just the state that has the highest probability
             labels.append(label)
 
         return labels
@@ -191,6 +203,28 @@ class HMM:
                 
         return prob
         
+#“Part 1 Viterbi Testing Example”
+def WeatherTestExample():
+
+    states = ['sunny','cloudy','rainy']
+    fNames = ['groundState']
+    num = { 'groundState': 3 }
+
+    x = HMM(states, fNames, 0, num)
+
+    x.priors = {'sunny': 0.63, 'cloudy': 0.17, 'rainy': 0.2}
+    x.emissions = {'sunny':{'groundState': [0.6,0.15,0.05]}, 'cloudy':{'groundState': [0.25,0.25,0.25]}, 'rainy':{'groundState': [0.05,0.35,0.5]}}
+    x.transitions = {'sunny':{'sunny':0.5 ,'cloudy':0.375 ,'rainy':0.125 },'cloudy':{'sunny':0.25 ,'cloudy':0.125 ,'rainy':0.625 }, 'rainy':{'sunny':0.25 ,'cloudy':0.375 ,'rainy':0.375 }}
+
+    observed = [ {'groundState':0}, {'groundState':1}, {'groundState':2}, {'groundState':1} ]
+
+    print x.label(observed)
+
+    # Runing WeatherTestExample() we get the following probabilities of each state
+    # {'rainy': 0.010000000000000002, 'sunny': 0.378, 'cloudy': 0.0425}
+    # {'rainy': 0.0165375, 'sunny': 0.02835, 'cloudy': 0.0354375}
+    # {'rainy': 0.01107421875, 'sunny': 0.0007087500000000001, 'cloudy': 0.0026578125}
+    # {'rainy': 0.0014534912109374998, 'sunny': 0.00041528320312499996, 'cloudy': 0.0010382080078124999}
 
 
 class StrokeLabeler:
@@ -262,6 +296,28 @@ class StrokeLabeler:
             
         return ret
     
+    def confusion(self, trueLabels, classifications):
+        '''Creates Confusion matrix based on the actual labels and the HMM's classification'''
+
+        actualDrawing_classDrawing = 0
+        actualDrawing_classText = 0
+        actualText_classText = 0
+        actualText_classDrawing = 0
+
+        #For each label, adds frequency to confusion matrix depending on its classifcation and actual label
+        for i in range(len(trueLabels)):
+            if trueLabels[i] == "drawing" and classifications[i] == "drawing":
+                actualDrawing_classDrawing += 1
+            elif trueLabels[i] == "drawing" and classifications[i] == "text":
+                actualDrawing_classText += 1
+            elif trueLabels[i] == "text" and classifications[i] == "text":
+                actualText_classText += 1
+            elif trueLabels[i] == "text" and classifications[i] == "drawing":
+                actualText_classDrawing += 1
+
+        return  {'drawing': {'drawing': actualDrawing_classDrawing, 'text': actualDrawing_classText}, 'text': {'drawing': actualText_classText, 'text': actualText_classDrawing}}
+
+
     def trainHMM( self, trainingFiles ):
         ''' Train the HMM '''
         self.hmm = HMM( self.labels, self.featureNames, self.contOrDisc, self.numFVals )
@@ -503,27 +559,6 @@ class StrokeLabeler:
             print "numStrokes is", len(strokes), "numLabels is", len(labels)
         return strokes, labels
 
-        def confustion(self, trueLabels, classifications):
-            '''Creates Confusion matrix based on the actual labels and the HMM's classification'''
-
-            actualDrawing_classDrawing = 0
-            actualDrawing_classText = 0
-            actualText_classText = 0
-            actualText_classDrawing = 0
-
-            for i in range(len(trueLabels)):
-                if trueLabels[i] == "drawing" and classifications[i] == "drawing":
-                    actualDrawing_classDrawing += 1
-                elif trueLabels[i] == "drawing" and classifications[i] == "text":
-                    actualDrawing_classText += 1
-                elif trueLabels[i] == "text" and classifications[i] == "text":
-                    actualText_classText += 1
-                elif trueLabels[i] == "text" and classifications[i] == "drawing":
-                    actualText_classDrawing += 1
-
-            return  {'drawing': {'drawing': actualDrawing_classDrawing, 'text': actualDrawing_classText}, 'text': {'drawing': actualText_classText, 'text': actualText_classDrawing}}
-
-
 class Stroke:
     ''' A class to represent a stroke (series of xyt points).
         This class also has various functions for computing stroke features. '''
@@ -608,25 +643,3 @@ class Stroke:
         return ret / len(self.points)
 
     # You can (and should) define more features here
-
-def WeatherTestExample():
-
-    states = ['sunny','cloudy','rainy']
-    fNames = ['groundState']
-    num = { 'groundState': 3 }
-
-    x = HMM(states, fNames, 0, num)
-
-    x.priors = {'sunny': 0.63, 'cloudy': 0.17, 'rainy': 0.2}
-    x.emissions = {'sunny':{'groundState': [0.6,0.15,0.05]}, 'cloudy':{'groundState': [0.25,0.25,0.25]}, 'rainy':{'groundState': [0.05,0.35,0.5]}}
-    x.transitions = {'sunny':{'sunny':0.5 ,'cloudy':0.375 ,'rainy':0.125 },'cloudy':{'sunny':0.25 ,'cloudy':0.125 ,'rainy':0.625 }, 'rainy':{'sunny':0.25 ,'cloudy':0.375 ,'rainy':0.375 }}
-
-    observed = [ {'groundState':0}, {'groundState':1}, {'groundState':2}, {'groundState':1} ]
-
-    print x.label(observed)
-
-    # Runing WeatherTestExample() we get the following probabilities of each state
-    # {'rainy': 0.010000000000000002, 'sunny': 0.378, 'cloudy': 0.0425}
-    # {'rainy': 0.0165375, 'sunny': 0.02835, 'cloudy': 0.0354375}
-    # {'rainy': 0.01107421875, 'sunny': 0.0007087500000000001, 'cloudy': 0.0026578125}
-    # {'rainy': 0.0014534912109374998, 'sunny': 0.00041528320312499996, 'cloudy': 0.0010382080078124999}
