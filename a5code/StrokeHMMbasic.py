@@ -203,7 +203,7 @@ class HMM:
                 
         return prob
         
-#“Part 1 Viterbi Testing Example”
+#Part 1 Viterbi Testing Example
 def WeatherTestExample():
 
     states = ['sunny','cloudy','rainy']
@@ -306,6 +306,7 @@ class StrokeLabeler:
 
         #For each label, adds frequency to confusion matrix depending on its classifcation and actual label
         for i in range(len(trueLabels)):
+
             if trueLabels[i] == "drawing" and classifications[i] == "drawing":
                 actualDrawing_classDrawing += 1
             elif trueLabels[i] == "drawing" and classifications[i] == "text":
@@ -358,10 +359,11 @@ class StrokeLabeler:
         ''' Label the strokes in the file strokeFile and save the labels
             (with the strokes) in the outFile '''
         print "Labeling file", strokeFile
-        strokes = self.loadStrokeFile( strokeFile )
+        strokes, trueLabels = self.loadLabeledFile( strokeFile )
         labels = self.labelStrokes( strokes )
         print "Labeling done, saving file as", outFile
         self.saveFile( strokes, labels, strokeFile, outFile )
+        print self.confusion(trueLabels, labels)
 
     def labelStrokes( self, strokes ):
         ''' return a list of labels for the given list of strokes '''
