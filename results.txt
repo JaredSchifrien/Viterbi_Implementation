@@ -1,0 +1,29 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf340
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww19600\viewh9500\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # Author(s) names AND netid's:\
+# Wyatt Cook: wsc147\
+# Jared Schifrien: Jss134\
+# Date: June 5, 2016\
+# Group work statement: All group members were present and contributing during all work on this project.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f1\fs22 \cf0 \CocoaLigature0 To build the best classifier we implemented the features of the area of the stroke\'92s overall box frame,\
+how long it took to draw the stroke, and used the already implemented sumOfCurvature function.\
+We then tested the Viterbi Labeling algorithm by training with 3/4 of the files given and testing on the other fourth.  \
+To better our accuracy, we could also implement a 10-fold validation script so that the accuracy is dependent more on our algorithm than the data we choose\
+All of these features we implemented are discrete and we tested the thresholds by increases or decreasing the thresholds until the max accuracy from the confusion matrix was achieved.  \
+Overall our features did a very good job at increasing the accuracy of the drawing label (increasing it by 7%, but they all decreased the accuracy of the text label by 12%.\
+\
+Basic (Only length):\
+\{\'91text': \{'text': 104, 'drawing': 121\}, 'drawing': \{'text': 131, 'drawing': 194\}\}\
+\
+With Length + boxArea: \
+\{'text': \{'text': 76, 'drawing': 149\}, 'drawing': \{'text': 132, 'drawing': 193\}\}\
+\
+With Length + boxArea + timeToDraw and curvature:\
+\{'text': \{'text': 76, 'drawing': 149\}, 'drawing': \{'text': 108, 'drawing': 217\}\}}
