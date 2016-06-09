@@ -254,6 +254,9 @@ class StrokeLabeler:
         self.featureNames = ['length', 'boxArea']
         self.contOrDisc = {'length': DISCRETE, 'boxArea': DISCRETE}
         self.numFVals = { 'length': 2, 'boxArea': 2}
+
+        self.masterTrueLabels=[]
+        self.masterLabels=[]
     def featurefy( self, strokes ):
         ''' Converts the list of strokes into a list of feature dictionaries
             suitable for the HMM
@@ -367,7 +370,8 @@ class StrokeLabeler:
         labels = self.labelStrokes( strokes )
         print "Labeling done, saving file as", outFile
         self.saveFile( strokes, labels, strokeFile, outFile )
-        print self.confusion(trueLabels, labels)
+        self.masterTrueLabels.extend(trueLabels)
+        self.masterLabels.extend(labels)
 
     def labelStrokes( self, strokes ):
         ''' return a list of labels for the given list of strokes '''
@@ -664,3 +668,34 @@ class Stroke:
         max_y = max(y_set)
         #calculate and return the area
         return (max_x - min_x)*(max_y - min_y)
+
+def trainAndLabel():
+    x = StrokeLabeler()
+
+    x.trainHMMDir("../trainingFiles/")
+
+    labelingDir="../labelingFiles/"
+
+    for fFileObj in os.walk(labelingDir):
+        lFileList = fFileObj[2]
+        break
+    goodList = []
+    for i in lFileList:
+        if not i.startswith('.'):
+            goodList.append(i)
+    
+    lFiles = [ labelingDir + "/" + f for f in goodList ] 
+
+    for f in lFiles:
+           x.labelFile(f, "results.txt")
+    
+    print x.confusion(x.masterTrueLabels,x.masterLabels)
+    return x
+
+
+
+
+
+
+
+
