@@ -251,9 +251,9 @@ class StrokeLabeler:
         #    name to whether it is continuous or discrete
         # numFVals is a dictionary specifying the number of legal values for
         #    each discrete feature
-        self.featureNames = ['length', 'boxArea']
-        self.contOrDisc = {'length': DISCRETE, 'boxArea': DISCRETE}
-        self.numFVals = { 'length': 2, 'boxArea': 2}
+        self.featureNames = ['length', 'boxArea', 'timeToDraw','curvature']
+        self.contOrDisc = {'length': DISCRETE, 'boxArea': DISCRETE, 'timeToDraw': DISCRETE,'curvature':DISCRETE}
+        self.numFVals = { 'length': 2, 'boxArea': 2, 'timeToDraw': 2, 'curvature':2}
 
         self.masterTrueLabels=[]
         self.masterLabels=[]
@@ -287,12 +287,24 @@ class StrokeLabeler:
                 d['length'] = 0
             else:
                 d['length'] = 1
-            #this sees whether or not the area is under 10000 or not.
+
             area = s.boxArea()
-            if area<12500:
+            if area<11500:
                 d['boxArea']=0
             else:
                 d['boxArea'] = 1
+
+            timeToDraw = s.timeToDraw()
+            if timeToDraw < 285:
+                d['timeToDraw'] = 0
+            else:
+                d['timeToDraw'] = 1
+
+            curvature=s.sumOfCurvature()
+            if curvature < 0.23:
+                d['curvature'] = 0
+            else:
+                d['curvature'] = 1
             # We can add more features here just by adding them to the dictionary
             # d as we did with length.  Remember that when you add features,
             # you also need to add them to the three member data structures
@@ -668,6 +680,11 @@ class Stroke:
         max_y = max(y_set)
         #calculate and return the area
         return (max_x - min_x)*(max_y - min_y)
+
+    def timeToDraw(self):
+        """ Returns the time taken for drawing a stroke. """
+        return self.points[len(self.points)-1][2] - self.points[0][2]
+
 
 def trainAndLabel():
     x = StrokeLabeler()
